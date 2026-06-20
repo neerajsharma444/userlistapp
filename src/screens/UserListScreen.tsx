@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, FlatList, StyleSheet, ActivityIndicator, Text } from 'react-native';
+import { View, FlatList, StyleSheet, ActivityIndicator, Text, Platform } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useGetUsers } from '../hooks/useGetUsers';
 import { RootStackParamList } from '../navigation/types';
@@ -54,13 +54,40 @@ const UserListScreen = ({ navigation }: Props) => {
     );
   };
 
+  const renderHeader = () => (
+    <SearchBar
+      value={searchQuery}
+      onChangeText={setSearchQuery}
+      placeholder="Search users by name..."
+    />
+  );
+
+  if (Platform.OS === 'ios') {
+    return (
+      <FlatList
+        style={styles.container}
+        data={filteredUsers}
+        contentInsetAdjustmentBehavior="automatic"
+        keyExtractor={(item) => item.id.toString()}
+        showsVerticalScrollIndicator={false}
+        renderItem={renderItem}
+        contentContainerStyle={styles.listContent}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        ListHeaderComponent={renderHeader}
+        stickyHeaderIndices={[0]}
+        ListFooterComponent={renderFooter}
+        ListEmptyComponent={renderEmptyComponent}
+        refreshing={isLoading && !isFetching}
+        onRefresh={refetch}
+        initialNumToRender={5}
+      />
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <SearchBar
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-        placeholder="Search users by name..."
-      />
+      {renderHeader()}
       <FlatList
         data={filteredUsers}
         keyExtractor={(item) => item.id.toString()}
